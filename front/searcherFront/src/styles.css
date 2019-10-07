@@ -1,0 +1,37 @@
+/* You can add global styles to this file, and also import other style files */
+@media (min-width: 576px) {
+  .widthCalc{
+    width: 100%
+  }
+}
+
+@media (min-width: 768px) {
+  .widthCalc{
+    width: 80%
+  }
+}
+
+@media (min-width: 992px) {
+  .widthCalc{
+    width: 60%
+  }
+}
+
+@media (min-width: 1200px) {
+  .widthCalc{
+    width: 50%
+  }
+}
+
+.widthCalc {
+  margin: auto;
+}
+
+.container {
+  font-size: 1.3rem;
+}
+
+.btn-success {
+  padding: 4px 8px;
+  border-radius: 0.6em;
+}

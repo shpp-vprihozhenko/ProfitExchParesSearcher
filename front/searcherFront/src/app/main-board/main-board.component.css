@@ -1,0 +1,35 @@
+.someColumns {
+  height: 40vh;
+  width: 70%;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  overflow: auto;
+}
+
+.centeredFlex {
+  display: flex; align-items: center; justify-content: center;
+}
+
+table, th , td {
+  border: 1px solid grey;
+  border-collapse: collapse;
+  padding: 5px;
+  text-align: center;
+  font-size: 1rem;
+}
+
+@media (min-width: 600px) {
+  table, th , td {
+    font-size: 1.2rem;
+  }
+}
+
+table tr:nth-child(odd) {
+  background-color: #f1f1f1;
+}
+
+table tr:nth-child(even) {
+  background-color: #ffffff;
+}
+

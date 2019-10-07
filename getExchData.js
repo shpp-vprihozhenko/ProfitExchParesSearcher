@@ -1,4 +1,6 @@
 "use strict";
+const TradeOgre = require('tradeogre-api'); 
+let tradeOgre = new TradeOgre(); 
 
 const ccxt      = require ('./node_modules/ccxt/ccxt.js')
     , asTable   = require ('as-table')
@@ -16,22 +18,88 @@ const ccxt      = require ('./node_modules/ccxt/ccxt.js')
 //console.table(ccxt.exchanges)
 //return
 
-let exch = 'bibox';
+//let id = 'binance';
 
 (async function main () {	
-	let settings = config[exch] || {};
+	let exchData = {};
 	
-	let exchange = new ccxt[exch] (ccxt.extend ({
-		// verbose,
-		// 'proxy': 'https://cors-anywhere.herokuapp.com/',
-	}, settings));
-
-	let tickers = await exchange.fetchTickers();			
-	console.log(tickers);
+	exchData['tradeOgre'] = await fetchTrOgTickers();
+	
+	for (let exch of ccxt.exchanges) {
+		console.log(exch);
+		if (exch == 'theocean') {
+			continue;
+		}
+		let settings = config[exch] || {};
+		
+		let exchange = new ccxt[exch] (ccxt.extend ({
+			// verbose,
+			// 'proxy': 'https://cors-anywhere.herokuapp.com/',
+		}, settings));
+		
+		let tickers;
+		try {
+			tickers = await exchange.fetchTickers();			
+		} catch (e) { 
+			console.log('skip',exch,'becouse no fetchTickers');
+			continue;
+		}
+		//console.log(ticker);
+		exchData[exch] = []
+		for (let vp in tickers) {
+			let ticker = tickers[vp];
+			if (!ticker.baseVolume) {
+				continue
+			}
+			//console.log(ticker.symbol, ticker.bid, ticker.ask, ticker.baseVolume);
+			exchData[exch].push({vp: ticker.symbol, bid: ticker.bid, ask: ticker.ask, vol: ticker.baseVolume});
+		};
+		if (exchData[exch].length == 0) {
+			exchData[exch] = undefined
+		}
+	}
+	fs.writeFileSync('exchData.json', JSON.stringify(exchData));
+	console.log('exchData.json saved')
 })()
 
 return
 
+// ------------------------------------------------
+
+function fetchTrOgTickers() {
+	return new Promise((resolve, reject) => {
+		console.log('fetchTrOgTickers')
+		tradeOgre.getMarkets((err,res)=>{
+			if (err) {
+				console.log('err on fetchTrOgTickers',err)
+				reject(err)
+			} else {
+				let arMarketTicker = JSON.parse(res.body)
+				let arTickers = [];
+				for (let ticker of arMarketTicker) {
+					for (let vp in ticker) {
+						let el = ticker[vp]
+						let obj = {}
+						let arVP = vp.split('-');
+						obj.vp = arVP[1]+'/'+arVP[0];
+						obj.bid = +el.bid
+						obj.ask = +el.ask
+						obj.vol = +el.volume;
+						if (obj.vol == 0) {
+							//console.log('skip',vp,'on tradeogre becouse dayVol = 0')
+							continue;
+						}
+						arTickers.push(obj);
+					}
+				}
+				//console.log('fetchTrOgTickers res', arTickers);
+				resolve(arTickers)
+			}
+		})
+	})
+}
+
+//---------------------------
 
 let printSupportedExchanges = function () {
     log ('Supported exchanges:', ccxt.exchanges.join (', ').green)
@@ -163,3 +231,6 @@ let proxies = [
     process.exit ()
 
 }) ()
+
+// ------------------
+
